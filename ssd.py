@@ -71,14 +71,14 @@ class SSD(nn.Module):
         conf = list()
 
         # apply vgg up to conv4_3 relu
-        for k in range(23):
+        for k in range(33):
             x = self.vgg[k](x)
 
         s = self.L2Norm(x)
         sources.append(s)
 
         # apply vgg up to fc7
-        for k in range(23, len(self.vgg)):
+        for k in range(33, len(self.vgg)):
             x = self.vgg[k](x)
         sources.append(x)
 
@@ -123,7 +123,7 @@ class SSD(nn.Module):
 
 # This function is derived from torchvision VGG make_layers()
 # https://github.com/pytorch/vision/blob/master/torchvision/models/vgg.py
-def vgg(cfg, i, batch_norm=False):
+def vgg(cfg, i, batch_norm=True):
     layers = []
     in_channels = i
     for v in cfg:
@@ -166,7 +166,7 @@ def add_extras(cfg, i, batch_norm=False):
 def multibox(vgg, extra_layers, cfg, num_classes):
     loc_layers = []
     conf_layers = []
-    vgg_source = [21, -2]
+    vgg_source = [30, -2]
     for k, v in enumerate(vgg_source):
         loc_layers += [nn.Conv2d(vgg[v].out_channels,
                                  cfg[k] * 4, kernel_size=3, padding=1)]
