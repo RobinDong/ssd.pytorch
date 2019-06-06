@@ -2,6 +2,7 @@ from data import *
 from utils.augmentations import SSDAugmentation
 from layers.modules import MultiBoxLoss
 from ssd import build_ssd
+from ssd_resnext import build_ssd_resnext
 import os
 import sys
 import time
@@ -53,6 +54,8 @@ parser.add_argument('--save_folder', default='weights/',
                     help='Directory for saving checkpoint models')
 parser.add_argument('--from_scratch', default=True, type=str2bool,
                     help='Train model from scratch')
+parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext'],
+                    type=str, help='Backbone network')
 args = parser.parse_args()
 
 
@@ -99,7 +102,11 @@ def train():
         import visdom
         viz = visdom.Visdom()
 
-    ssd_net = build_ssd('train', cfg['min_dim'], cfg['num_classes'])
+    if args.backbone == 'vgg':
+        ssd_net = build_ssd('train', cfg['min_dim'], cfg['num_classes'])
+    elif args.backbone == 'resnext':
+        ssd_net = build_ssd_resnext('train', cfg['min_dim'], cfg['num_classes'])
+
     net = ssd_net
 
     if args.cuda:
