@@ -126,7 +126,7 @@ def train():
 
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum,
                           weight_decay=args.weight_decay)
-    criterion = MultiBoxLoss(cfg['num_classes'], 0.5, True, 0, True, 3, 0.5,
+    criterion = MultiBoxLoss(cfg['num_classes'], 0.4, True, 0, True, 3, 0.5,
                              False, args.cuda)
 
     net.train()

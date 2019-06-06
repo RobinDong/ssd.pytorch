@@ -318,7 +318,7 @@ class Expand(object):
             return image, boxes, labels
 
         height, width, depth = image.shape
-        ratio = random.uniform(1, 4)
+        ratio = random.uniform(1, 6)
         left = random.uniform(0, width*ratio - width)
         top = random.uniform(0, height*ratio - height)
 
