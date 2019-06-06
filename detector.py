@@ -17,7 +17,7 @@ def main(args):
         bird_index = 1
 
     net = build_ssd('test', 300, cfg['num_classes'])
-    ckpt = torch.load('weights/ssd300_COCO_120000.pth', map_location = 'cpu')
+    ckpt = torch.load('weights/ssd300_COCO_{}.pth'.format(args.trained_model), map_location = 'cpu')
     net.load_state_dict(ckpt)
     net.eval()
     print('Finished loading model!')
@@ -44,8 +44,8 @@ def main(args):
                       (int(pt[0]), int(pt[1])),
                       (int(pt[2]), int(pt[3])),
                       COLORS[bird_index % 3], 2)
-        cv2.putText(img, 'bird_'+str(score.item()), (int(pt[0]), int(pt[1])),
-                    FONT, 1, (255, 255, 255), 1, cv2.LINE_AA)
+        cv2.putText(img, 'bird_{:.2f}'.format(score.item()), (int(pt[0]), int(pt[1])),
+                    FONT, 1, (255, 255, 255), 2, cv2.LINE_AA)
         j += 1
         score = detections[0, bird_index, j, 0]
     print('time', time.time() - begin)
@@ -57,5 +57,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', default='VOC', choices=['VOC', 'CUB'],
                         type=str, help='VOC or CUB')
+    parser.add_argument('--trained_model', default=120000,
+                        type=int, help='trained model number for predicting')
     args = parser.parse_args()
     main(args)
