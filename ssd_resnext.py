@@ -136,7 +136,7 @@ def add_extras(cfg, i, batch_norm=False):
 def multibox(extra_layers, cfg, num_classes):
     loc_layers = []
     conf_layers = []
-    resnext_channels = [256, 512]
+    resnext_channels = [512, 1024]
     for k, channel in enumerate(resnext_channels):
         loc_layers += [nn.Conv2d(channel,
                                  cfg[k] * 4, kernel_size=3, padding=1)]
@@ -168,6 +168,6 @@ def build_ssd_resnext(phase, size=300, num_classes=21):
         print("ERROR: You specified size " + repr(size) + ". However, " +
               "currently only SSD300 (size=300) is supported!")
         return
-    extras_, head_ = multibox(add_extras(extras[str(size)], 512),
+    extras_, head_ = multibox(add_extras(extras[str(size)], 1024),
                               mbox[str(size)], num_classes)
     return SSDResNeXt(phase, size, extras_, head_, num_classes)

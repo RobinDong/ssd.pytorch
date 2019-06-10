@@ -5,6 +5,7 @@ import argparse
 
 from torch.autograd import Variable
 from ssd import build_ssd
+from ssd_resnext import build_ssd_resnext
 from data import *
 
 def main(args):
@@ -16,7 +17,10 @@ def main(args):
         cfg = cub
         bird_index = 1
 
-    net = build_ssd('test', 300, cfg['num_classes'])
+    if args.backbone == 'vgg':
+        net = build_ssd('test', 300, cfg['num_classes'])
+    elif args.backbone == 'resnext':
+        net = build_ssd_resnext('test', 300, cfg['num_classes'])
     ckpt = torch.load('weights/ssd300_COCO_{}.pth'.format(args.trained_model), map_location = 'cpu')
     net.load_state_dict(ckpt)
     net.eval()
@@ -59,5 +63,7 @@ if __name__ == '__main__':
                         type=str, help='VOC or CUB')
     parser.add_argument('--trained_model', default=120000,
                         type=int, help='trained model number for predicting')
+    parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext'],
+                        type=str, help='Backbone network')
     args = parser.parse_args()
     main(args)

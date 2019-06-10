@@ -14,6 +14,7 @@ from data import VOC_CLASSES as labelmap
 import torch.utils.data as data
 
 from ssd import build_ssd
+from ssd_resnext import build_ssd_resnext
 
 import sys
 import os
@@ -50,6 +51,8 @@ parser.add_argument('--voc_root', default=VOC_ROOT,
                     help='Location of VOC root directory')
 parser.add_argument('--cleanup', default=True, type=str2bool,
                     help='Cleanup and remove results files following eval')
+parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext'],
+                    type=str, help='Backbone network')
 
 args = parser.parse_args()
 
@@ -421,7 +424,10 @@ def evaluate_detections(box_list, output_dir, dataset):
 if __name__ == '__main__':
     # load net
     num_classes = len(labelmap) + 1                      # +1 for background
-    net = build_ssd('test', 300, num_classes)            # initialize SSD
+    if args.backbone == 'vgg':
+        net = build_ssd('test', 300, num_classes)        # initialize SSD
+    elif args.backbone == 'resnext':
+        net = build_ssd_resnext('test', 300, num_classes)
     net.load_state_dict(torch.load(args.trained_model, map_location='cpu'))
     net.eval()
     print('Finished loading model!')
