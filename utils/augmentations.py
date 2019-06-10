@@ -167,6 +167,17 @@ class ConvertColor(object):
         return image, boxes, labels
 
 
+class ToGray(object):
+    def __init__(self, dice = 3):
+        self.dice = dice
+
+    def __call__(self, image, boxes=None, labels=None):
+        if not random.randint(self.dice):
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            image = np.stack((image, image, image), axis=-1)
+        return image, boxes, labels
+
+
 class RandomContrast(object):
     def __init__(self, lower=0.5, upper=1.5):
         self.lower = lower
@@ -381,6 +392,7 @@ class PhotometricDistort(object):
             RandomSaturation(),
             RandomHue(),
             ConvertColor(current='HSV', transform='BGR'),
+            ToGray(),
             RandomContrast()
         ]
         self.rand_brightness = RandomBrightness()
