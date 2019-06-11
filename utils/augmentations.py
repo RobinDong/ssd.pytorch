@@ -194,7 +194,7 @@ class RandomContrast(object):
 
 
 class RandomBrightness(object):
-    def __init__(self, delta=32):
+    def __init__(self, delta=40):
         assert delta >= 0.0
         assert delta <= 255.0
         self.delta = delta
