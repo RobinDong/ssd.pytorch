@@ -56,6 +56,8 @@ parser.add_argument('--from_scratch', default=True, type=str2bool,
                     help='Train model from scratch')
 parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext'],
                     type=str, help='Backbone network')
+parser.add_argument('--warmup', default=False, type=str2bool,
+                    help='Warm up learning rate')
 args = parser.parse_args()
 
 
@@ -171,6 +173,11 @@ def train():
             conf_loss = 0
             epoch += 1
 
+        if args.warmup:
+            warmup_steps = 2000
+            if iteration < warmup_steps:
+                warmup_learning_rate(optimizer, iteration, warmup_steps)
+
         if iteration in cfg['lr_steps']:
             step_index += 1
             adjust_learning_rate(optimizer, args.gamma, step_index)
@@ -217,6 +224,15 @@ def train():
                        repr(iteration) + '.pth')
     torch.save(ssd_net.state_dict(),
                args.save_folder + '' + args.dataset + '.pth')
+
+
+def warmup_learning_rate(optimizer, steps, warmup_steps):
+    min_lr = args.lr / 100
+    slope = (args.lr - min_lr) / warmup_steps
+
+    lr = steps * slope + min_lr
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
 
 
 def adjust_learning_rate(optimizer, gamma, step):
