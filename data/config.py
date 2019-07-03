@@ -2,7 +2,7 @@
 import os.path
 
 # gets home dir cross platform
-HOME = os.path.expanduser("/disk3/donghao/ssd.pytorch/")
+HOME = os.path.expanduser("/home/ubuntu/ssd.pytorch/")
 
 # for making bounding boxes pretty
 COLORS = ((255, 0, 0, 128), (0, 255, 0, 128), (0, 0, 255, 128),
@@ -13,8 +13,8 @@ MEANS = (104, 117, 123)
 # SSD300 CONFIGS
 voc = {
     'num_classes': 21,
-    'lr_steps': (80000, 100000, 120000),
-    'max_iter': 120001,
+    'lr_steps': (80000, 100000, 120000, 140000),
+    'max_iter': 140001,
     'feature_maps': [38, 19, 10, 5, 3, 1],
     'min_dim': 300,
     'steps': [8, 16, 32, 64, 100, 300],
