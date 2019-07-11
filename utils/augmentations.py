@@ -426,3 +426,49 @@ class SSDAugmentation(object):
 
     def __call__(self, img, boxes, labels):
         return self.augment(img, boxes, labels)
+
+if __name__ == '__main__':
+    import xml.etree.ElementTree as ET
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import cv2
+    from data import voc0712
+
+    root_dir = '/home/haodong/Downloads/VOCdevkit/VOC2012/'
+    file_name = '2011_002568'
+    # Read image
+    image_file = root_dir + 'JPEGImages/' + file_name + '.jpg'
+    img = cv2.imread(image_file)
+    height, width, channels = img.shape
+    # Read and parse annotations
+    annotation_file = root_dir + 'Annotations/' + file_name + '.xml'
+    raw_target = ET.parse(annotation_file).getroot()
+    target_transform = voc0712.VOCAnnotationTransform()
+    target = target_transform(raw_target, width, height)
+    target = np.array(target)
+
+    # Augment image many times
+
+    origin_img = img
+    origin_target = target
+    transform = SSDAugmentation(mean = (0, 0, 0))
+    for turn in range(10):
+        target = origin_target.copy()
+        img = origin_img.copy()
+        img, boxes, _ = transform(img, target[:, :4], target[:, 4])
+        print(boxes)
+        # to rgb
+        #img = img[:, :, (2, 1, 0)]
+        img = img.astype('uint8')
+
+        height, width, channels = img.shape
+        for index in range(len(boxes)):
+            xmin = int(boxes[index][0] * width)
+            ymin = int(boxes[index][1] * height)
+            xmax = int(boxes[index][2] * width)
+            ymax = int(boxes[index][3] * height)
+
+            cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (255, 255, 0), 1)
+
+        plt.imshow(img)
+        plt.show()
