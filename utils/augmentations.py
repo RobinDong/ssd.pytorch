@@ -405,7 +405,8 @@ class PhotometricDistort(object):
         else:
             distort = Compose(self.pd[1:])
         im, boxes, labels = distort(im, boxes, labels)
-        return self.rand_light_noise(im, boxes, labels)
+        im, boxes, labels = self.rand_light_noise(im, boxes, labels)
+        return np.clip(im, 0, 255), boxes, labels
 
 
 class SSDAugmentation(object):
