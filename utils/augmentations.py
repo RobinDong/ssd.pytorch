@@ -5,6 +5,8 @@ import numpy as np
 import types
 from numpy import random
 
+from .background import Background
+
 
 def intersect(box_a, box_b):
     max_xy = np.minimum(box_a[:, 2:], box_b[2:])
@@ -322,20 +324,22 @@ class RandomSampleCrop(object):
 class Expand(object):
     def __init__(self, mean):
         self.mean = mean
+        # Prepare all random background
+        self.bg = Background(limit=10000)
 
     def __call__(self, image, boxes, labels):
         if random.randint(2):
             return image, boxes, labels
+
+        max = len(self.bg)
+        bg_image, _ = self.bg[random.randint(max)]
 
         height, width, depth = image.shape
         ratio = random.uniform(1, 6)
         left = random.uniform(0, width*ratio - width)
         top = random.uniform(0, height*ratio - height)
 
-        expand_image = np.zeros(
-            (int(height*ratio), int(width*ratio), depth),
-            dtype=image.dtype)
-        expand_image[:, :, :] = self.mean
+        expand_image = cv2.resize(bg_image, (int(width*ratio), int(height*ratio)))
         expand_image[int(top):int(top + height),
                      int(left):int(left + width)] = image
         image = expand_image
