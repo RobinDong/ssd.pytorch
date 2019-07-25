@@ -3,6 +3,7 @@ from utils.augmentations import SSDAugmentation
 from layers.modules import MultiBoxLoss
 from ssd import build_ssd
 from ssd_resnext import build_ssd_resnext
+from ssd_mobilenet import build_ssd_mobilenet
 import os
 import sys
 import time
@@ -54,7 +55,7 @@ parser.add_argument('--save_folder', default='weights/',
                     help='Directory for saving checkpoint models')
 parser.add_argument('--from_scratch', default=True, type=str2bool,
                     help='Train model from scratch')
-parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext'],
+parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext', 'mobilenet'],
                     type=str, help='Backbone network')
 parser.add_argument('--warmup', default=False, type=str2bool,
                     help='Warm up learning rate')
@@ -108,6 +109,8 @@ def train():
         ssd_net = build_ssd('train', cfg['min_dim'], cfg['num_classes'])
     elif args.backbone == 'resnext':
         ssd_net = build_ssd_resnext('train', cfg['min_dim'], cfg['num_classes'])
+    elif args.backbone == 'mobilenet':
+        ssd_net = build_ssd_mobilenet('train', cfg['min_dim'], cfg['num_classes'])
 
     net = ssd_net
 

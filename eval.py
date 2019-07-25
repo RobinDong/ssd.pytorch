@@ -15,6 +15,7 @@ import torch.utils.data as data
 
 from ssd import build_ssd
 from ssd_resnext import build_ssd_resnext
+from ssd_mobilenet import build_ssd_mobilenet
 
 import sys
 import os
@@ -51,7 +52,7 @@ parser.add_argument('--voc_root', default=VOC_ROOT,
                     help='Location of VOC root directory')
 parser.add_argument('--cleanup', default=True, type=str2bool,
                     help='Cleanup and remove results files following eval')
-parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext'],
+parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext', 'mobilenet'],
                     type=str, help='Backbone network')
 
 args = parser.parse_args()
@@ -428,6 +429,8 @@ if __name__ == '__main__':
         net = build_ssd('test', 300, num_classes)        # initialize SSD
     elif args.backbone == 'resnext':
         net = build_ssd_resnext('test', 300, num_classes)
+    elif args.backbone == 'mobilenet':
+        net = build_ssd_mobilenet('test', 300, num_classes)
     net.load_state_dict(torch.load(args.trained_model, map_location='cpu'))
     net.eval()
     print('Finished loading model!')

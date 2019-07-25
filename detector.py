@@ -6,6 +6,7 @@ import argparse
 from torch.autograd import Variable
 from ssd import build_ssd
 from ssd_resnext import build_ssd_resnext
+from ssd_mobilenet import build_ssd_mobilenet
 from data import *
 
 def main(args):
@@ -21,6 +22,8 @@ def main(args):
         net = build_ssd('test', 300, cfg['num_classes'])
     elif args.backbone == 'resnext':
         net = build_ssd_resnext('test', 300, cfg['num_classes'])
+    elif args.backbone == 'mobilenet':
+        net = build_ssd_mobilenet('test', 300, cfg['num_classes'])
     ckpt = torch.load('weights/ssd300_COCO_{}.pth'.format(args.trained_model), map_location = 'cpu')
     net.load_state_dict(ckpt)
     net.eval()
@@ -28,8 +31,9 @@ def main(args):
 
     begin = time.time()
     transform = BaseTransform(net.size, (104, 117, 123))
-    img = cv2.imread('WechatIMG17.jpeg')
-    #img = cv2.imread('bird_matrix.jpg')
+    #img = cv2.imread('17test.png')
+    #img = cv2.imread('WechatIMG17.jpeg')
+    img = cv2.imread('bird_matrix.jpg')
     height, width = img.shape[:2]
     x = torch.from_numpy(transform(img)[0]).permute(2, 0, 1)
     x = Variable(x.unsqueeze(0))
@@ -63,7 +67,7 @@ if __name__ == '__main__':
                         type=str, help='VOC or CUB')
     parser.add_argument('--trained_model', default=120000,
                         type=int, help='trained model number for predicting')
-    parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext'],
+    parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext', 'mobilenet'],
                         type=str, help='Backbone network')
     args = parser.parse_args()
     main(args)
