@@ -113,6 +113,8 @@ def train():
         ssd_net = build_ssd_mobilenet('train', cfg['min_dim'], cfg['num_classes'])
 
     net = ssd_net
+    print(net)
+    print('extras:', net.extras)
 
     if args.cuda:
         net = torch.nn.DataParallel(ssd_net)
@@ -132,9 +134,9 @@ def train():
     if not args.resume:
         print('Initializing weights...')
         # initialize newly added layers' weights with xavier method
-        ssd_net.extras.apply(weights_init)
-        ssd_net.loc.apply(weights_init)
-        ssd_net.conf.apply(weights_init)
+        # ssd_net.extras.apply(weights_init)
+        # ssd_net.loc.apply(weights_init)
+        # ssd_net.conf.apply(weights_init)
 
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum,
                           weight_decay=args.weight_decay)
@@ -213,9 +215,9 @@ def train():
         loc_loss += loss_l.item()
         conf_loss += loss_c.item()
 
-        if iteration % 10 == 0:
+        if iteration % 100 == 0:
             print('timer: %.4f sec.' % (t1 - t0))
-            print('iter ' + repr(iteration) + ' || Loss: %.4f ||' % (loss.item()), end=' ')
+            print('iter ' + repr(iteration) + ' || Loc loss: %.4f || Conf loss: %.4f' % (loss_l.item(), loss_c.item()), end=' ')
 
         if args.visdom:
             update_vis_plot(iteration, loss_l.item(), loss_c.item(),
@@ -250,7 +252,7 @@ def adjust_learning_rate(optimizer, gamma, step):
 
 
 def xavier(param):
-    init.xavier_uniform(param)
+    init.kaiming_normal(param)
 
 
 def weights_init(m):
