@@ -39,7 +39,7 @@ class SSDMobileNetV2(nn.Module):
         self.size = size
 
         # SSD network
-        self.backbone = mobilenet.MobileNetV2(num_classes=num_classes, width_mult=1.0)
+        self.backbone = nn.ModuleList(mobilenet.MobileNetV2(num_classes=num_classes, width_mult=1.0).features)
         self.norm = L2Norm(96, 20)
         self.extras = nn.ModuleList(extras)
 
@@ -73,10 +73,14 @@ class SSDMobileNetV2(nn.Module):
         loc = list()
         conf = list()
 
-        _, endpoints = self.backbone(x)
-        sources.append(self.norm(endpoints[0]))
-        sources.append(endpoints[1])
-        x = endpoints[1]
+        for k in range(len(self.backbone)):
+            x = self.backbone[k](x)
+            if k in [13, 17]:
+                if len(sources) == 0:
+                    s = self.norm(x)
+                    sources.append(s)
+                else:
+                    sources.append(x)
 
         # apply extra layers and cache source layer outputs
         for k, v in enumerate(self.extras):
