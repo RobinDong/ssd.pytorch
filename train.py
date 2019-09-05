@@ -11,6 +11,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.optim as optim
+from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
 import torch.nn.init as init
 import torch.utils.data as data
@@ -140,6 +141,7 @@ def train():
 
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum,
                           weight_decay=args.weight_decay)
+    scheduler = lr_scheduler.CosineAnnealingLR(optimizer, 100)
     criterion = MultiBoxLoss(cfg['num_classes'], 0.4, True, 0, True, 3, 0.5,
                              False, args.cuda)
 
@@ -169,6 +171,7 @@ def train():
                                   pin_memory=True)
     # create batch iterator
     batch_iterator = iter(data_loader)
+    t0 = time.time()
     for iteration in range(args.start_iter, cfg['max_iter']):
         if args.visdom and iteration != 0 and (iteration % epoch_size == 0):
             update_vis_plot(epoch, loc_loss, conf_loss, epoch_plot, None,
@@ -183,9 +186,12 @@ def train():
             if iteration < warmup_steps:
                 warmup_learning_rate(optimizer, iteration, warmup_steps)
 
-        if iteration in cfg['lr_steps']:
+        cosine_period = int(cfg['lr_steps'][-1] / 100)
+        if iteration > cfg['lr_steps'][0] and iteration % cosine_period == 0:
+            scheduler.step(iteration / cosine_period)
+        '''if iteration in cfg['lr_steps']:
             step_index += 1
-            adjust_learning_rate(optimizer, args.gamma, step_index)
+            adjust_learning_rate(optimizer, args.gamma, step_index)'''
 
         # load train data
         try:
@@ -203,7 +209,6 @@ def train():
             images = Variable(images)
             targets = [Variable(ann, volatile=True) for ann in targets]
         # forward
-        t0 = time.time()
         out = net(images)
         # backprop
         optimizer.zero_grad()
@@ -211,13 +216,17 @@ def train():
         loss = loss_l + loss_c
         loss.backward()
         optimizer.step()
-        t1 = time.time()
         loc_loss += loss_l.item()
         conf_loss += loss_c.item()
 
-        if iteration % 100 == 0:
-            print('timer: %.4f sec.' % (t1 - t0))
-            print('iter ' + repr(iteration) + ' || Loc loss: %.4f || Conf loss: %.4f' % (loss_l.item(), loss_c.item()), end=' ')
+        verbose_period = 1000
+        if iteration != 0 and iteration % verbose_period == 0:
+            print('timer: %.4f sec.' % (time.time() - t0))
+            t0 = time.time()
+            lr = optimizer.param_groups[0]['lr']
+            print('iter ' + repr(iteration) + ' || Loc loss: %.4f || Conf loss: %.4f || lr: %.6f' % (loc_loss / verbose_period, conf_loss / verbose_period, lr), end=' ')
+            loc_loss = 0
+            conf_loss = 0
 
         if args.visdom:
             update_vis_plot(iteration, loss_l.item(), loss_c.item(),
@@ -225,9 +234,9 @@ def train():
 
         if iteration != 0 and iteration % 5000 == 0:
             print('Saving state, iter:', iteration)
-            torch.save(ssd_net.state_dict(), 'weights/ssd300_COCO_' +
+            torch.save(ssd_net, 'weights/ssd300_COCO_' +
                        repr(iteration) + '.pth')
-    torch.save(ssd_net.state_dict(),
+    torch.save(ssd_net,
                args.save_folder + '' + args.dataset + '.pth')
 
 
