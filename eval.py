@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
+from layers import *
 from data import VOC_ROOT, VOCAnnotationTransform, VOCDetection, BaseTransform
 from data import VOC_CLASSES as labelmap
 import torch.utils.data as data
@@ -386,7 +387,13 @@ def test_net(save_folder, net, cuda, dataset, transform, top_k,
         if args.cuda:
             x = x.cuda()
         _t['im_detect'].tic()
-        detections = net(x).data
+        result = net(x)
+        detect = Detect(21, 0, 200, 0.01, 0.45)
+        softmax = torch.nn.Softmax(dim=-1)
+        loc = result[0]
+        conf = result[1]
+        priors = result[2]
+        detections = detect(loc, softmax(conf), priors).data
         detect_time = _t['im_detect'].toc(average=False)
 
         # skip j = 0, because it's the background class
@@ -431,7 +438,7 @@ if __name__ == '__main__':
         net = build_ssd_resnext('test', 300, num_classes)
     elif args.backbone == 'mobilenet':
         net = build_ssd_mobilenet('test', 300, num_classes)
-    net.load_state_dict(torch.load(args.trained_model, map_location='cpu'))
+    net = torch.load(args.trained_model, map_location='cpu')
     net.eval()
     print('Finished loading model!')
     # load data
