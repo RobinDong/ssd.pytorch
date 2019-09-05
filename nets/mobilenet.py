@@ -114,7 +114,7 @@ class MobileNetV2(nn.Module):
                 features.append(block(input_channel, output_channel, stride, expand_ratio=t))
                 input_channel = output_channel
         # building last several layers
-        features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
+        # features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
         # make it nn.Sequential
         # self.features = nn.Sequential(*features)
         self.features = features
