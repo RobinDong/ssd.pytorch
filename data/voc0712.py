@@ -11,6 +11,7 @@ import sys
 import torch
 import torch.utils.data as data
 import cv2
+import jpeg4py as jpeg
 import numpy as np
 if sys.version_info[0] == 2:
     import xml.etree.cElementTree as ET
@@ -123,7 +124,8 @@ class VOCDetection(data.Dataset):
         img_id = self.ids[index]
 
         target = ET.parse(self._annopath % img_id).getroot()
-        img = cv2.imread(self._imgpath % img_id)
+        img = jpeg.JPEG(self._imgpath % img_id).decode()
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         height, width, channels = img.shape
 
         if self.target_transform is not None:
