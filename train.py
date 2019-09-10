@@ -135,9 +135,9 @@ def train():
     if not args.resume:
         print('Initializing weights...')
         # initialize newly added layers' weights with xavier method
-        # ssd_net.extras.apply(weights_init)
-        # ssd_net.loc.apply(weights_init)
-        # ssd_net.conf.apply(weights_init)
+        ssd_net.extras.apply(weights_init)
+        ssd_net.loc.apply(weights_init)
+        ssd_net.conf.apply(weights_init)
 
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum,
                           weight_decay=args.weight_decay)
@@ -202,12 +202,13 @@ def train():
         except Exception as e:
             print("Loading data exception:", e)
 
-        if args.cuda:
-            images = Variable(images.cuda())
-            targets = [Variable(ann.cuda(), volatile=True) for ann in targets]
-        else:
-            images = Variable(images)
-            targets = [Variable(ann, volatile=True) for ann in targets]
+        with torch.no_grad():
+            if args.cuda:
+                images = Variable(images.cuda())
+                targets = [Variable(ann.cuda()) for ann in targets]
+            else:
+                images = Variable(images)
+                targets = [Variable(ann) for ann in targets]
         # forward
         out = net(images)
         # backprop
@@ -261,13 +262,14 @@ def adjust_learning_rate(optimizer, gamma, step):
 
 
 def xavier(param):
-    init.kaiming_normal(param)
+    init.xavier_uniform(param)
 
 
 def weights_init(m):
     if isinstance(m, nn.Conv2d):
         xavier(m.weight.data)
-        m.bias.data.zero_()
+        if m.bias is not None:
+            m.bias.data.zero_()
 
 
 def create_vis_plot(_xlabel, _ylabel, _title, _legend):
