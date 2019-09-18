@@ -114,7 +114,7 @@ class Resize(object):
 
 
 class RandomSaturation(object):
-    def __init__(self, lower=0.5, upper=1.5):
+    def __init__(self, lower=0.2, upper=1.8):
         self.lower = lower
         self.upper = upper
         assert self.upper >= self.lower, "contrast upper must be >= lower."
@@ -128,7 +128,7 @@ class RandomSaturation(object):
 
 
 class RandomHue(object):
-    def __init__(self, delta=18.0):
+    def __init__(self, delta=60.0):
         assert delta >= 0.0 and delta <= 360.0
         self.delta = delta
 
@@ -181,7 +181,7 @@ class ToGray(object):
 
 
 class RandomContrast(object):
-    def __init__(self, lower=0.5, upper=1.5):
+    def __init__(self, lower=0.2, upper=1.8):
         self.lower = lower
         self.upper = upper
         assert self.upper >= self.lower, "contrast upper must be >= lower."
