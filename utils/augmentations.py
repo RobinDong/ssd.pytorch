@@ -335,7 +335,7 @@ class Expand(object):
         bg_image, _ = self.bg[random.randint(max)]
 
         height, width, depth = image.shape
-        ratio = random.uniform(1, 6)
+        ratio = random.uniform(1, 4)
         left = random.uniform(0, width*ratio - width)
         top = random.uniform(0, height*ratio - height)
 
