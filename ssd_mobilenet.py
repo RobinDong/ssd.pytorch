@@ -25,7 +25,7 @@ class SSDMobileNetV2(nn.Module):
         head: "multibox head" consists of loc and conf conv layers
     """
 
-    def __init__(self, phase, size, extras, head, num_classes):
+    def __init__(self, phase, size, extras, head, top_down, final_features, num_classes):
         super(SSDMobileNetV2, self).__init__()
         self.phase = phase
         self.num_classes = num_classes
@@ -45,6 +45,9 @@ class SSDMobileNetV2(nn.Module):
 
         self.loc = nn.ModuleList(head[0])
         self.conf = nn.ModuleList(head[1])
+
+        self.top_down = nn.ModuleList(top_down)
+        self.final_features = nn.ModuleList(final_features)
 
         if phase == 'test':
             self.softmax = nn.Softmax(dim=-1)
@@ -89,8 +92,24 @@ class SSDMobileNetV2(nn.Module):
             #if k % 2 == 1:
             sources.append(x)
 
+        top_down_x = []
+        for k, v in enumerate(sources):
+            x = self.top_down[k](v)
+            top_down_x.append(x)
+
+        top_down_x = top_down_x[::-1]
+
+        pyramids = [self.final_features[0](top_down_x[0])]
+        for k, v in enumerate(top_down_x[:-1]):
+            size = top_down_x[k+1].shape[2:]
+            x = F.upsample(v, size=size) + top_down_x[k+1]
+            x = self.final_features[k+1](x)
+            pyramids.append(x)
+
+        pyramids = pyramids[::-1]
+
         # apply multibox head to source layers
-        for (x, l, c) in zip(sources, self.loc, self.conf):
+        for (x, l, c) in zip(pyramids, self.loc, self.conf):
             loc.append(l(x).permute(0, 2, 3, 1).contiguous())
             conf.append(c(x).permute(0, 2, 3, 1).contiguous())
 
@@ -152,19 +171,24 @@ def add_extras(cfg):
 def multibox(extra_layers, cfg, num_classes):
     loc_layers = []
     conf_layers = []
+    top_down_layers = []
+    final_features = []
     mobilenet_channels = [96, 320]
     for k, channel in enumerate(mobilenet_channels):
-        loc_layers += [nn.Conv2d(channel,
+        loc_layers += [nn.Conv2d(256,
                                  cfg[k] * 4, kernel_size=3, padding=1)]
-        conf_layers += [nn.Conv2d(channel,
+        conf_layers += [nn.Conv2d(256,
                         cfg[k] * num_classes, kernel_size=3, padding=1)]
-    out_channels = [0, 0, 512, 256, 256, 128]
+    out_channels = mobilenet_channels + [512, 256, 256, 128]
     for k, v in enumerate(extra_layers, 2):
-        loc_layers += [nn.Conv2d(out_channels[k], cfg[k]
+        loc_layers += [nn.Conv2d(256, cfg[k]
                                  * 4, kernel_size=3, padding=1)]
-        conf_layers += [nn.Conv2d(out_channels[k], cfg[k]
+        conf_layers += [nn.Conv2d(256, cfg[k]
                                   * num_classes, kernel_size=3, padding=1)]
-    return extra_layers, (loc_layers, conf_layers)
+    for k, v in enumerate(out_channels):
+        top_down_layers += [nn.Conv2d(v, 256, kernel_size=1)]
+        final_features += [nn.Conv2d(256, 256, kernel_size=3, padding=1)]
+    return extra_layers, (loc_layers, conf_layers), top_down_layers, final_features
 
 
 extras = {
@@ -185,6 +209,6 @@ def build_ssd_mobilenet(phase, size=300, num_classes=21):
         print("ERROR: You specified size " + repr(size) + ". However, " +
               "currently only SSD300 (size=300) is supported!")
         return
-    extras_, head_ = multibox(add_extras(extras[str(size)]),
+    extras_, head_, top_down_, final_features_ = multibox(add_extras(extras[str(size)]),
                               mbox[str(size)], num_classes)
-    return SSDMobileNetV2(phase, size, extras_, head_, num_classes)
+    return SSDMobileNetV2(phase, size, extras_, head_, top_down_, final_features_, num_classes)
