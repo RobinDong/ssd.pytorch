@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 
 class Background(object):
-    def __init__(self, root_dir = '/home/hdong/data/VOCdevkit/VOC2012/',
+    def __init__(self, root_dir = '/home/haodong/data/VOCdevkit/VOC2012/',
                  limit=1000, exclude_class='bird', with_foreground=False):
         list_file = '{}/ImageSets/Main/{}_trainval.txt'.format(root_dir, exclude_class)
 
