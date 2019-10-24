@@ -111,7 +111,7 @@ def train():
     elif args.backbone == 'resnext':
         ssd_net = build_ssd_resnext('train', cfg['min_dim'], cfg['num_classes'])
     elif args.backbone == 'mobilenet':
-        ssd_net = build_ssd_mobilenet('train', cfg['min_dim'], cfg['num_classes'])
+        ssd_net = build_ssd_mobilenet('train', cfg)
 
     net = ssd_net
     print(net)

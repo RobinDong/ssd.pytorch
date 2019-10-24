@@ -155,12 +155,11 @@ class Detect(Function):
 
 def main(args):
     # Load net
+    bird_index = 1
     if args.dataset == 'VOC':
         cfg = voc
-        bird_index = 3
     elif args.dataset == 'CUB':
         cfg = cub
-        bird_index = 1
 
     net = torch.load('weights/ssd300_COCO_{}.pth'.format(args.trained_model), map_location = 'cpu')
     net.eval()

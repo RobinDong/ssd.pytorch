@@ -12,6 +12,7 @@ from torch.autograd import Variable
 from layers import *
 from data import VOC_ROOT, VOCAnnotationTransform, VOCDetection, BaseTransform
 from data import VOC_CLASSES as labelmap
+from data import voc, coco, cub
 import torch.utils.data as data
 
 from ssd import build_ssd
@@ -78,7 +79,7 @@ imgsetpath = os.path.join(args.voc_root, 'VOC2007', 'ImageSets',
 YEAR = '2007'
 devkit_path = args.voc_root + 'VOC' + YEAR
 dataset_mean = (104, 117, 123)
-set_type = 'test'
+set_type = 'bird_test'
 
 
 class Timer(object):
@@ -266,7 +267,7 @@ cachedir: Directory for caching the annotations
     # read list of images
     with open(imagesetfile, 'r') as f:
         lines = f.readlines()
-    imagenames = [x.strip() for x in lines]
+    imagenames = [x.strip().split()[0] for x in lines]
     if not os.path.isfile(cachefile):
         # load annots
         recs = {}
@@ -388,7 +389,7 @@ def test_net(save_folder, net, cuda, dataset, transform, top_k,
             x = x.cuda()
         _t['im_detect'].tic()
         result = net(x)
-        detect = Detect(21, 0, 200, 0.01, 0.45)
+        detect = Detect(2, 0, 200, 0.01, 0.45)
         softmax = torch.nn.Softmax(dim=-1)
         loc = result[0]
         conf = result[1]
@@ -437,7 +438,7 @@ if __name__ == '__main__':
     elif args.backbone == 'resnext':
         net = build_ssd_resnext('test', 300, num_classes)
     elif args.backbone == 'mobilenet':
-        net = build_ssd_mobilenet('test', 300, num_classes)
+        net = build_ssd_mobilenet('test', voc)
     net = torch.load(args.trained_model, map_location='cpu')
     net.eval()
     print('Finished loading model!')

@@ -18,12 +18,13 @@ if sys.version_info[0] == 2:
 else:
     import xml.etree.ElementTree as ET
 
-VOC_CLASSES = (  # always index 0
+'''VOC_CLASSES = (  # always index 0
     'aeroplane', 'bicycle', 'bird', 'boat',
     'bottle', 'bus', 'car', 'cat', 'chair',
     'cow', 'diningtable', 'dog', 'horse',
     'motorbike', 'person', 'pottedplant',
-    'sheep', 'sofa', 'train', 'tvmonitor')
+    'sheep', 'sofa', 'train', 'tvmonitor')'''
+VOC_CLASSES = ('bird',)
 
 # note: if you used our download scripts, this should be right
 VOC_ROOT = osp.join(HOME, "data/VOCdevkit/")
@@ -61,6 +62,8 @@ class VOCAnnotationTransform(object):
             if not self.keep_difficult and difficult:
                 continue
             name = obj.find('name').text.lower().strip()
+            if name not in self.class_to_ind:
+                continue
             bbox = obj.find('bndbox')
 
             pts = ['xmin', 'ymin', 'xmax', 'ymax']
@@ -96,7 +99,7 @@ class VOCDetection(data.Dataset):
     """
 
     def __init__(self, root,
-                 image_sets=[('2007', 'trainval'), ('2012', 'trainval')],
+                 image_sets=[('2007', 'bird_trainval'), ('2012', 'bird_trainval')],
                  transform=None, target_transform=VOCAnnotationTransform(),
                  dataset_name='VOC0712'):
         self.root = root
@@ -110,7 +113,9 @@ class VOCDetection(data.Dataset):
         for (year, name) in image_sets:
             rootpath = osp.join(self.root, 'VOC' + year)
             for line in open(osp.join(rootpath, 'ImageSets', 'Main', name + '.txt')):
-                self.ids.append((rootpath, line.strip()))
+                arr = line.strip().split()
+                if int(arr[1]) > 0:
+                    self.ids.append((rootpath, arr[0]))
 
     def __getitem__(self, index):
         im, gt, h, w = self.pull_item(index)

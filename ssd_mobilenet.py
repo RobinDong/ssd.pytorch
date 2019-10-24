@@ -25,21 +25,17 @@ class SSDMobileNetV2(nn.Module):
         head: "multibox head" consists of loc and conf conv layers
     """
 
-    def __init__(self, phase, size, extras, head, top_down, final_features, num_classes):
+    def __init__(self, phase, size, extras, head, top_down, final_features, cfg):
         super(SSDMobileNetV2, self).__init__()
         self.phase = phase
-        self.num_classes = num_classes
-        switcher = {
-            2: cub,
-            21: voc
-        }
-        self.cfg = switcher.get(num_classes, coco)
+        self.num_classes = cfg['num_classes']
+        self.cfg = cfg
         self.priorbox = PriorBox(self.cfg)
         self.priors = Variable(self.priorbox.forward(), volatile=True)
         self.size = size
 
         # SSD network
-        self.backbone = nn.ModuleList(mobilenet.MobileNetV2(num_classes=num_classes, width_mult=1.0).features)
+        self.backbone = nn.ModuleList(mobilenet.MobileNetV2(num_classes=self.num_classes, width_mult=1.0).features)
         self.norm = L2Norm(96, 20)
         self.extras = nn.ModuleList(extras)
 
@@ -51,7 +47,7 @@ class SSDMobileNetV2(nn.Module):
 
         if phase == 'test':
             self.softmax = nn.Softmax(dim=-1)
-            self.detect = Detect(num_classes, 0, 200, 0.01, 0.45)
+            self.detect = Detect(self.num_classes, 0, 200, 0.01, 0.45)
 
     def forward(self, x):
         """Applies network layers and ops on input image(s) x.
@@ -201,7 +197,9 @@ mbox = {
 }
 
 
-def build_ssd_mobilenet(phase, size=300, num_classes=21):
+def build_ssd_mobilenet(phase, cfg):
+    size = cfg['min_dim']
+    num_classes = cfg['num_classes']
     if phase != "test" and phase != "train":
         print("ERROR: Phase: " + phase + " not recognized")
         return
@@ -211,4 +209,4 @@ def build_ssd_mobilenet(phase, size=300, num_classes=21):
         return
     extras_, head_, top_down_, final_features_ = multibox(add_extras(extras[str(size)]),
                               mbox[str(size)], num_classes)
-    return SSDMobileNetV2(phase, size, extras_, head_, top_down_, final_features_, num_classes)
+    return SSDMobileNetV2(phase, size, extras_, head_, top_down_, final_features_, cfg)
