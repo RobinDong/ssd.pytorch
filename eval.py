@@ -56,6 +56,8 @@ parser.add_argument('--cleanup', default=True, type=str2bool,
                     help='Cleanup and remove results files following eval')
 parser.add_argument('--backbone', default='vgg', choices=['vgg', 'resnext', 'mobilenet'],
                     type=str, help='Backbone network')
+parser.add_argument('--dataset', default='eval', choices=['eval', 'train'],
+                    type=str, help='Evaluation dataset')
 
 args = parser.parse_args()
 
@@ -442,6 +444,11 @@ if __name__ == '__main__':
     net = torch.load(args.trained_model, map_location='cpu')
     net.eval()
     print('Finished loading model!')
+
+    if args.dataset == 'train':
+        set_type = 'bird_train'
+        YEAR = '2012'
+        devkit_path = args.voc_root + 'VOC' + YEAR
     # load data
     dataset = VOCDetection(args.voc_root, [('2007', set_type)],
                            BaseTransform(300, dataset_mean),
