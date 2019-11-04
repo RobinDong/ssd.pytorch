@@ -62,10 +62,12 @@ class COCOAnnotationTransform(object):
                 bbox = obj['bbox']
                 bbox[2] += bbox[0]
                 bbox[3] += bbox[1]
-                label_idx = self.label_map[obj['category_id']] - 1
-                final_box = list(np.array(bbox)/scale)
-                final_box.append(label_idx)
-                res += [final_box]  # [xmin, ymin, xmax, ymax, label_idx]
+                if obj['category_id'] == 16: # For 'bird' category
+                    #label_idx = self.label_map[obj['category_id']] - 1
+                    label_idx = 0
+                    final_box = list(np.array(bbox)/scale)
+                    final_box.append(label_idx)
+                    res += [final_box]  # [xmin, ymin, xmax, ymax, label_idx]
             else:
                 print("no bbox problem!")
 
@@ -83,14 +85,26 @@ class COCODetection(data.Dataset):
         in the target (bbox) and transforms it.
     """
 
-    def __init__(self, root, image_set='trainval35k', transform=None,
+    def __init__(self, root, image_set='train2017', transform=None,
                  target_transform=COCOAnnotationTransform(), dataset_name='MS COCO'):
         sys.path.append(osp.join(root, COCO_API))
         from pycocotools.coco import COCO
         self.root = osp.join(root, IMAGES, image_set)
         self.coco = COCO(osp.join(root, ANNOTATIONS,
                                   INSTANCES_SET.format(image_set)))
-        self.ids = list(self.coco.imgToAnns.keys())
+        self.ids = []
+        for img_id in list(self.coco.imgToAnns.keys()):
+            ann_ids = self.coco.getAnnIds(imgIds=img_id)
+            target = self.coco.loadAnns(ann_ids)
+            nr_birds = 0
+            for obj in target:
+                if obj['category_id'] == 16: # Only use images contains bird
+                    nr_birds += 1
+            if nr_birds > 0:
+                self.ids.append(img_id)
+
+        #self.ids = list(self.coco.imgToAnns.keys())
+        print('Number of bird-images in COCO:', len(self.ids))
         self.transform = transform
         self.target_transform = target_transform
         self.name = dataset_name
