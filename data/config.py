@@ -43,8 +43,8 @@ cub = {
 
 coco = {
     'num_classes': 2,
-    'lr_steps': (9000, 400000),
-    'max_iter': 400001,
+    'lr_steps': (9000, 200000),
+    'max_iter': 200001,
     'feature_maps': [19, 10, 5, 3, 2, 1],
     'min_dim': 300,
     'steps': [16, 30, 60, 100, 150, 300],

@@ -26,8 +26,8 @@ def str2bool(v):
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Training With Pytorch')
 train_set = parser.add_mutually_exclusive_group()
-parser.add_argument('--dataset', default='VOC', choices=['VOC', 'COCO', 'CUB'],
-                    type=str, help='VOC or COCO or CUB')
+parser.add_argument('--dataset', default='VOC', choices=['VOC', 'COCO', 'CUB', 'COCO+VOC'],
+                    type=str, help='VOC or COCO or CUB or COCO+VOC')
 parser.add_argument('--dataset_root', default=VOC_ROOT,
                     help='Dataset root directory path')
 parser.add_argument('--basenet', default='vgg16_reducedfc.pth',
@@ -101,6 +101,16 @@ def train():
         dataset = CUBDetection(root=args.dataset_root,
                                transform=SSDAugmentation(cfg['min_dim'],
                                                          MEANS))
+    elif args.dataset == 'COCO+VOC':
+        cfg = coco
+        datacoco = COCODetection(root=args.dataset_root + '/coco/',
+                                transform=SSDAugmentation(cfg['min_dim'],
+                                                          MEANS))
+        datavoc = VOCDetection(root=args.dataset_root + '/VOCdevkit/',
+                               transform=SSDAugmentation(cfg['min_dim'],
+                                                         MEANS))
+        dataset = data.ConcatDataset([datacoco, datavoc])
+
 
     if args.visdom:
         import visdom
@@ -153,7 +163,7 @@ def train():
     print('Loading the dataset...')
 
     epoch_size = len(dataset) // args.batch_size
-    print('Training SSD on:', dataset.name)
+    print('Training SSD on:', args.dataset)
     print('Using the specified args:')
     print(args)
 
