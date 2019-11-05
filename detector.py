@@ -5,6 +5,7 @@ import argparse
 
 from torch.autograd import Variable, Function
 from data import *
+from bn_fusion import fuse_bn_recursively
 
 # Original author: Francisco Massa:
 # https://github.com/fmassa/object-detection.torch
@@ -162,6 +163,7 @@ def main(args):
         cfg = cub
 
     net = torch.load('weights/ssd300_COCO_{}.pth'.format(args.trained_model), map_location = 'cpu')
+    net = fuse_bn_recursively(net)
     net.eval()
     print('Finished loading model!')
 
