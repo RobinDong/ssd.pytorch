@@ -228,7 +228,7 @@ def detection(args, coco):
     results = []
     for img_id in img_ids:
         ann_ids = coco.getAnnIds(imgIds=img_id)
-        img_path = osp.join(ROOT, 'images', 'val{}'.format(args.year),
+        img_path = osp.join(ROOT, 'images', '{}'.format(args.year),
                             coco.loadImgs(img_id)[0]['file_name'])
         results.extend(detect_one_image(net, transform, detect, img_id, img_path))
 
@@ -237,12 +237,12 @@ def detection(args, coco):
 
 
 def main(args):
-    coco = COCO(osp.join(ROOT, ANNOTATIONS, INSTANCES_SET.format('val{}'.format(args.year))))
+    coco = COCO(osp.join(ROOT, ANNOTATIONS, INSTANCES_SET.format('{}'.format(args.year))))
 
     if not osp.exists('coco_bird_pred_{}.json'.format(args.year)):
         detection(args, coco)
 
-    coco_src = coco.loadRes('coco_bird_eval_val{}.json'.format(args.year))
+    coco_src = coco.loadRes('coco_bird_eval_{}.json'.format(args.year))
     coco_target = coco.loadRes('coco_bird_pred_{}.json'.format(args.year))
     coco_eval = COCOeval(coco_src, coco_target)
     coco_eval.params.useSegm = 0
@@ -256,7 +256,7 @@ if __name__ == '__main__':
                         type=str, help='VOC or CUB')
     parser.add_argument('--trained_model', default=200000,
                         type=int, help='trained model number for predicting')
-    parser.add_argument('--year', default=2014, choices=[2014, 2017],
-                        type=int, help='trained model number for predicting')
+    parser.add_argument('--year', default='val2014',
+                        type=str, help='dataset used to be source')
     args = parser.parse_args()
     main(args)
