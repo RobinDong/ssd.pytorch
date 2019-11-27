@@ -26,7 +26,8 @@ def str2bool(v):
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Training With Pytorch')
 train_set = parser.add_mutually_exclusive_group()
-parser.add_argument('--dataset', default='VOC', choices=['VOC', 'COCO', 'CUB', 'COCO+VOC'],
+parser.add_argument('--dataset', default='VOC',
+                    choices=['VOC', 'COCO', 'CUB', 'COCO+VOC', 'OPENIMAGE'],
                     type=str, help='VOC or COCO or CUB or COCO+VOC')
 parser.add_argument('--dataset_root', default=VOC_ROOT,
                     help='Dataset root directory path')
@@ -110,6 +111,10 @@ def train():
                                transform=SSDAugmentation(cfg['min_dim'],
                                                          MEANS))
         dataset = data.ConcatDataset([datacoco, datavoc])
+    elif args.dataset == 'OPENIMAGE':
+        cfg = coco
+        dataset = OpenImageDetection(root=args.dataset_root,
+                                     transform=SSDAugmentation(cfg['min_dim'], MEANS))
 
 
     if args.visdom:
