@@ -183,7 +183,7 @@ def multibox(extra_layers, cfg, num_classes):
                                   * num_classes, kernel_size=3, padding=1)]
     for k, v in enumerate(out_channels):
         top_down_layers += [nn.Conv2d(v, 256, kernel_size=1)]
-        final_features += [nn.Conv2d(256, 256, kernel_size=3, padding=1)]
+        final_features += [nn.Conv2d(256, 256, kernel_size=1, padding=0)]
     return extra_layers, (loc_layers, conf_layers), top_down_layers, final_features
 
 
