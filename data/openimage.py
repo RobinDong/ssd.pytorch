@@ -58,8 +58,7 @@ class OpenImageDetection(data.Dataset):
         path = osp.join(self.img_dir, img_id + '.jpg')
         assert osp.exists(path), 'Image path does not exist: {}'. format(path)
 
-        #img = cv2.imread(path)
-        img = jpeg4py.JPEG(path).decode()
+        img = cv2.imread(path)
         height, width, _ = img.shape
 
         if self.target_transform is not None:
