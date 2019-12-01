@@ -18,6 +18,11 @@ import torch.utils.data as data
 import numpy as np
 import argparse
 
+from prefetch_generator import BackgroundGenerator
+
+class DataLoaderX(data.DataLoader):
+    def __iter__(self):
+        return BackgroundGenerator(super().__iter__())
 
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
@@ -180,7 +185,7 @@ def train():
         iter_plot = create_vis_plot('Iteration', 'Loss', vis_title, vis_legend)
         epoch_plot = create_vis_plot('Epoch', 'Loss', vis_title, vis_legend)
 
-    data_loader = data.DataLoader(dataset, args.batch_size,
+    data_loader = DataLoaderX(dataset, args.batch_size,
                                   num_workers=args.num_workers,
                                   shuffle=True, collate_fn=detection_collate,
                                   pin_memory=True)
