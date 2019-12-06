@@ -118,9 +118,13 @@ def train():
         dataset = data.ConcatDataset([datacoco, datavoc])
     elif args.dataset == 'OPENIMAGE':
         cfg = coco
-        dataset = OpenImageDetection(root=args.dataset_root,
-                                     transform=SSDAugmentation(cfg['min_dim'], MEANS))
-
+        openimage = OpenImageDetection(root=args.dataset_root,
+                                       transform=SSDAugmentation(cfg['min_dim'], MEANS))
+        datacoco = COCODetection(root=args.dataset_root + '/coco/',
+                                 transform=SSDAugmentation(cfg['min_dim'], MEANS))
+        datavoc = VOCDetection(root=args.dataset_root + '/VOCdevkit/',
+                               transform=SSDAugmentation(cfg['min_dim'], MEANS))
+        dataset = data.ConcatDataset([openimage, datacoco, datavoc])
 
     if args.visdom:
         import visdom
