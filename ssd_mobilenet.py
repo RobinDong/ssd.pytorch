@@ -35,8 +35,8 @@ class SSDMobileNetV2(nn.Module):
         self.size = size
 
         # SSD network
-        self.backbone = nn.ModuleList(mobilenet.MobileNetV2(num_classes=self.num_classes, width_mult=1.0).features)
-        self.norm = L2Norm(96, 20)
+        self.backbone = nn.ModuleList(mobilenet.MobileNetV2(num_classes=self.num_classes, width_mult=0.75).features)
+        self.norm = L2Norm(int(96 * 0.75), 20)
         self.extras = nn.ModuleList(extras)
 
         self.loc = nn.ModuleList(head[0])
@@ -157,7 +157,7 @@ def add_extras(cfg):
     layers = []
     block = mobilenet.InvertedResidual
 
-    layers.append(block(320, 512, 2, 512.0/320.0))
+    layers.append(block(int(320*0.75), 512, 2, 512.0/(320.0*0.75)))
     layers.append(block(512, 256, 2, 0.5))
     layers.append(block(256, 256, 2, 1))
     layers.append(block(256, 128, 2, 0.5))
@@ -169,7 +169,7 @@ def multibox(extra_layers, cfg, num_classes):
     conf_layers = []
     top_down_layers = []
     final_features = []
-    mobilenet_channels = [96, 320]
+    mobilenet_channels = [int(96*0.75), int(320*0.75)]
     for k, channel in enumerate(mobilenet_channels):
         loc_layers += [nn.Conv2d(256,
                                  cfg[k] * 4, kernel_size=3, padding=1)]
