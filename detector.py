@@ -171,6 +171,7 @@ def main(args):
     transform = BaseTransform(net.size, (104, 117, 123))
     #img = cv2.imread('17test.png')
     #img = cv2.imread('WechatIMG17.jpeg')
+    #img = cv2.imread('colorful.jpg')
     img = cv2.imread('bird_matrix.jpg')
     height, width = img.shape[:2]
     x = torch.from_numpy(transform(img)[0]).permute(2, 0, 1)
